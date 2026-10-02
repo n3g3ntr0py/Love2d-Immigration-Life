@@ -6,12 +6,13 @@ local function bindToGrid(grid, pos)
 end
 
 return {
-    createGrid = function(windowDimensions, cellSize)
+    createGrid = function(windowDimensions, cellSize, toroidal)
         local cellAmountX = windowDimensions[1] / cellSize
         local cellAmountY = windowDimensions[2] / cellSize
 
         local grid = {}
         grid.cellSize = cellSize
+        grid.toroidal = toroidal
 
         for row = 1, cellAmountY do
             grid[row] = {}
@@ -107,20 +108,34 @@ return {
                 local aliveNeighbours = {0, 0}
                 for neighbourRow = row - 1, row + 1 do
                     for neighbourColumn = column -1, column + 1 do
-                        if
-                            grid[neighbourRow] and
-                            grid[neighbourRow][neighbourColumn] and
-                            grid[neighbourRow][neighbourColumn] ~= grid[row][column] and
-                            grid[neighbourRow][neighbourColumn][3] == 1
-                        then
-                            aliveNeighbours[1] = aliveNeighbours[1] + 1
-                        elseif
-                            grid[neighbourRow] and
-                            grid[neighbourRow][neighbourColumn] and
-                            grid[neighbourRow][neighbourColumn] ~= grid[row][column] and
-                            grid[neighbourRow][neighbourColumn][3] == 2
-                        then
-                            aliveNeighbours[2] = aliveNeighbours[2] + 1
+                        if not grid.toroidal then
+                            if
+                                grid[neighbourRow] and
+                                grid[neighbourRow][neighbourColumn] and
+                                grid[neighbourRow][neighbourColumn] ~= grid[row][column] and
+                                grid[neighbourRow][neighbourColumn][3] == 1
+                            then
+                                aliveNeighbours[1] = aliveNeighbours[1] + 1
+                            elseif
+                                grid[neighbourRow] and
+                                grid[neighbourRow][neighbourColumn] and
+                                grid[neighbourRow][neighbourColumn] ~= grid[row][column] and
+                                grid[neighbourRow][neighbourColumn][3] == 2
+                            then
+                                aliveNeighbours[2] = aliveNeighbours[2] + 1
+                            end
+                        else
+                            if
+                                grid[(neighbourRow - 1) % #grid + 1][(neighbourColumn - 1) % #grid[1] + 1] ~= grid[row][column] and
+                                grid[(neighbourRow - 1) % #grid + 1][(neighbourColumn - 1) % #grid[1] + 1][3] == 1
+                            then
+                                aliveNeighbours[1] = aliveNeighbours[1] + 1
+                            elseif
+                                grid[(neighbourRow - 1) % #grid + 1][(neighbourColumn - 1) % #grid[1] + 1] ~= grid[row][column] and
+                                grid[(neighbourRow - 1) % #grid + 1][(neighbourColumn - 1) % #grid[1] + 1][3] == 2
+                            then
+                                aliveNeighbours[2] = aliveNeighbours[2] + 1
+                            end
                         end
                     end
                 end

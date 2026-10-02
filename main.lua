@@ -11,7 +11,8 @@ function love.load()
     }
     state.currentGrid = grid.createGrid(
         state.windowDimensions,
-        state.cellSize
+        state.cellSize,
+        config.toroidalGrid
     )
 end
 
@@ -29,22 +30,28 @@ function love.mousemoved(x, y)
     )
 end
 
-local paused = true
 function love.keypressed(key)
     if key == state.pauseKey then
-        paused = not paused
+        state.paused = not state.paused
     end
 end
 
-local turn = 1
 function love.mousepressed(x, y, button, istouch, presses)
-    if button ~= state.placeKey or not paused then return end
-    if grid.spawnCell(
-        state.selectedCell,
-        turn
-    )
-    then
-        turn = (turn % 2) + 1
+    if state.useTurns then
+        if button ~= state.placeKey or not state.paused then return end
+        if grid.spawnCell(
+            state.selectedCell,
+            state.turn
+        )
+        then
+            state.turn = (state.turn % 2) + 1
+        end
+    else
+        if button ~= 1 and button ~= 2 or not state.paused then return end
+        grid.spawnCell(
+            state.selectedCell,
+            button
+        )
     end
 end
 
@@ -71,7 +78,7 @@ end
 local updateTimer = 0
 function love.update(dt)
     updateTimer = updateTimer + dt
-    if not paused and updateTimer >= state.updateInterval then
+    if not state.paused and updateTimer >= state.updateInterval then
         grid.updateGrid(state.currentGrid)
         updateTimer = 0
     end
